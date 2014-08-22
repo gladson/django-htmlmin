@@ -7,10 +7,19 @@ from htmlmin.minify import html_minify
 from django.conf import settings
 
 
+class MarkRequestMiddleware(object):
+    
+    def process_request(self, request):
+        request._hit_htmlmin = True
+
+
 class HtmlMinifyMiddleware(object):
 
     def can_minify_response(self, request, response):
-        req_ok = True
+        try:
+            req_ok = request._hit_htmlmin
+        except AttributeError:
+            return False
 
         if hasattr(settings, 'EXCLUDE_FROM_MINIFYING'):
             for url_pattern in settings.EXCLUDE_FROM_MINIFYING:
@@ -28,7 +37,9 @@ class HtmlMinifyMiddleware(object):
     def process_response(self, request, response):
         minify = getattr(settings, "HTML_MINIFY", not settings.DEBUG)
         keep_comments = getattr(settings, 'KEEP_COMMENTS_ON_MINIFYING', False)
+        parser = getattr(settings, 'HTML_MIN_PARSER', 'html5lib')
         if minify and self.can_minify_response(request, response):
             response.content = html_minify(response.content,
-                                           ignore_comments=not keep_comments)
+                                           ignore_comments=not keep_comments,
+                                           parser=parser)
         return response

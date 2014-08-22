@@ -54,8 +54,13 @@ class TestMinify(unittest.TestCase):
         result = html_minify(html)
         self.assertEqual(minified, result)
 
-    def test_should_not_convert_entity_the_content_of_textarea_tag(self):
+    def test_should_convert_to_entities_the_content_of_textarea_tag(self):
         html, minified = self._normal_and_minified('with_html_content_in_textarea')
+        result = html_minify(html)
+        self.assertEqual(minified, result)
+
+    def test_should_not_convert_entities_within_textarea_tag(self):
+        html, minified = self._normal_and_minified('with_entities_in_textarea')
         result = html_minify(html)
         self.assertEqual(minified, result)
 
@@ -67,7 +72,7 @@ class TestMinify(unittest.TestCase):
 
     def test_html_should_be_minified(self):
         html = "<html>   <body>some text here</body>    </html>"
-        minified = "<html><head></head><body>some text here </body></html>"
+        minified = "<html><head></head><body>some text here</body></html>"
         self.assertEqual(minified, html_minify(html))
 
     def test_minify_function_should_return_a_unicode_object(self):
@@ -106,6 +111,10 @@ class TestMinify(unittest.TestCase):
 
     def test_should_not_exclude_conditional_comments(self):
         html, minified = self._normal_and_minified('with_conditional_comments')
+        self.assertEqual(minified, html_minify(html))
+
+    def test_should_not_rm_multiline_conditional_comments(self):
+        html, minified = self._normal_and_minified('with_multiple_line_conditional_comments')
         self.assertEqual(minified, html_minify(html))
 
     def test_should_touch_attributes_only_on_tags(self):
